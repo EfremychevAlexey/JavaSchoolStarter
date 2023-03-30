@@ -13,24 +13,17 @@ public class Main {
 
         JavaSchoolStarter javaSchoolStarter = new JavaSchoolStarter();
 
-        String initialRequest = "INSERT VALUES   ‘lastName’ =    ‘Федоров’ , ‘id’=3.0, ‘age’=40, ‘active’=true";
+        String initialRequest = "INSERT VALUES   ‘lastName’ =    ‘Федоров’ , ‘id’=3, ‘age’=40, ‘active’=true";
         byte[] bytes = initialRequest.getBytes(StandardCharsets.UTF_8);
         initialRequest = new String(bytes);
 
-//        String bool = "false";
-//        Boolean value = Boolean.valueOf(bool);
-//        System.out.println(value);
+        //String[] str1 = new String{0, 1, 2, 3, 4, 5, 6};
 
 
-        List<Map<String, Object>> table = javaSchoolStarter.execute(initialRequest);
-        table.stream().forEach(System.out::println);
-
-
-
-
-//        Pattern pattern = Pattern.compile("‘[a-zA-Z]+’");
-//        Matcher matcher = pattern.matcher(request);
-//        System.out.println(matcher.find());
+        List<Map<String, Object>> list = javaSchoolStarter.execute(initialRequest);
+        for (Map m: list){
+            System.out.println(m);
+        }
 
     }
 }
