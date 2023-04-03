@@ -20,17 +20,17 @@ public class Main {
 
 
         ArrayList<String> requestList = new ArrayList<>();
-        requestList.add("INSERT VALUES ‘lastName’ = ‘Федоров’, ‘id’ = 1, ‘age’=15,‘active’=true,‘cost’ = 1.5");
+        requestList.add("INSERT VALUES ‘lastName’ = ‘Федоров’, ‘id’ = 1, ‘age’=15,‘active’=false,‘cost’ = 1.5");
         requestList.add("INSERT VALUES ‘lastName’ = ‘Максимов’ , ‘id’ = 2, ‘age’=20,‘active’=true,‘cost’ = 2.5");
         requestList.add("INSERT VALUES ‘lastName’ = ‘Демидов’ , ‘id’ = 3, ‘age’=25,‘active’=true,‘cost’ = 3.5");
         requestList.add("INSERT VALUES ‘lastName’ = ‘Киселев’ , ‘id’ = 4, ‘age’=30,‘active’=true,‘cost’ = 4.5");
         requestList.add("INSERT VALUES ‘lastName’ = ‘Абрамов’ , ‘id’ = 5, ‘age’=35,‘active’=true,‘cost’ = 5.5");
-        requestList.add("DELETE WHERE 'id' <= 4, 'lastName' like 'Кис%'");
+        requestList.add("SELECT WHERE 'id' <= 4 and 'lastName' like 'Кис%', ‘id’ = 5 or ‘active’=false");
 
         for(String request : requestList){
             javaSchoolStarter.execute(request);
         }
-        System.out.println();
+        System.out.println("\nДанные таблицы");
         for (Map m: javaSchoolStarter.table){
             System.out.println(m);
         }

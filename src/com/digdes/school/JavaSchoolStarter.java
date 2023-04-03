@@ -92,200 +92,43 @@ public class JavaSchoolStarter {
 
     //  ***DELETE***   Удаление элементов из таблицы
     private List<Map<String, Object>> delete(String[] parameters) throws Exception {
-        Set<Map<String, Object>> deletedLines = new HashSet<>();
-        for (String field : parameters) {
-            String column, operator, stringValue;
-            String[] parametersArray = getParametersArray(field);
-            column = parametersArray[0];
-            operator = parametersArray[1];
-            stringValue = parametersArray[2];
+        Set<Map<String, Object>> deleteSet = new HashSet<>();
+        Set<Map<String, Object>> cumulativeSet = new HashSet<>();
 
-            switch (operator) {
-                case ("="):
-                    if (column.equals("id") || column.equals("cost") || column.equals("age")) {
-                        System.out.println("Enter");
+        for (int i = 0; i < parameters.length; i++) {
+            if(parameters[i].toLowerCase().equals("and")){
+                if(i == parameters.length){
+                    throw new IllegalAccessException("Wrong format: " + parameters[i]);
+                }
+                Set<Map<String, Object>> excludedSet = getCumulativeList(parameters[++i]);
+
+                for (Map m: cumulativeSet){
+                    if (excludedSet.contains(m)){
+                        deleteSet.add(m);
                     }
-
-                    deletedLines.addAll(table.stream().filter(row ->
-                            row.get(column).toString().equals(stringValue)).collect(Collectors.toList()));
-                    break;
-                case ("<="):
-                    if (column.equals("id") || column.equals("age")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (long) row.get(column) <= Long.parseLong(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (column.equals("cost")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (double) row.get(column) <= Double.parseDouble(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else {
-                        throw new Exception("The data cannot be compared" + column + operator + stringValue);
-                    }
-                case (">="):
-                    if (column.equals("id") || column.equals("age")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (long) row.get(column) >= Long.parseLong(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (column.equals("cost")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (double) row.get(column) >= Double.parseDouble(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else {
-                        throw new Exception("The data cannot be compared" + column + operator + stringValue);
-                    }
-                case ("!="):
-                    if (column.equals("id") || column.equals("age")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (long) row.get(column) != Long.parseLong(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (column.equals("cost")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (double) row.get(column) != Double.parseDouble(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else {
-                        throw new Exception("The data cannot be compared" + column + operator + stringValue);
-                    }
-                case ("<"):
-                    if (column.equals("id") || column.equals("age")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (long) row.get(column) < Long.parseLong(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (column.equals("cost")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (double) row.get(column) <= Double.parseDouble(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else {
-                        throw new Exception("The data cannot be compared" + column + operator + stringValue);
-                    }
-                case (">"):
-                    if (column.equals("id") || column.equals("age")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (long) row.get(column) > Long.parseLong(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (column.equals("cost")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        (double) row.get(column) > Double.parseDouble(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else {
-                        throw new Exception("The data cannot be compared" + column + operator + stringValue);
-                    }
-                case ("like"):
-                    if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        row.get(column).toString().contains(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (stringValue.matches("[a-zA-Zа-яА-Я]+%")) {
-                        String regex = "\\b" + stringValue.replaceAll("%", "");
-                        Pattern pattern = Pattern.compile(regex);
-
-                        deletedLines.addAll(table.stream()
-                                .filter(row -> {
-                                    String value = row.get(column).toString();
-                                    Matcher matcher = pattern.matcher(value);
-                                    if (matcher.find()) {
-                                        return true;
-                                    } else return false;
-                                }).collect(Collectors.toList()));
-                        break;
-
-                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+%")) {
-                        String regex = "\\B" + stringValue.replaceAll("%", "") + "\\B";
-                        Pattern pattern = Pattern.compile(regex);
-
-                        deletedLines.addAll(table.stream()
-                                .filter(row -> {
-                                    String value = row.get(column).toString();
-                                    Matcher matcher = pattern.matcher(value);
-                                    if (matcher.find()) {
-                                        return true;
-                                    } else return false;
-                                }).collect(Collectors.toList()));
-                        break;
-                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+")) {
-                        String regex = stringValue.replaceAll("%", "") + "\\b";
-                        Pattern pattern = Pattern.compile(regex);
-
-                        deletedLines.addAll(table.stream()
-                                .filter(row -> {
-                                    String value = row.get(column).toString();
-                                    Matcher matcher = pattern.matcher(value);
-                                    if (matcher.find()) {
-                                        return true;
-                                    } else return false;
-                                }).collect(Collectors.toList()));
-                        break;
-
-                    } else {
-                        break;
-                    }
-                case ("ilike"):
-                    if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
-                        deletedLines.addAll(table.stream().filter(row ->
-                                        row.get(column).toString().toLowerCase().contains(stringValue))
-                                .collect(Collectors.toList()));
-                        break;
-                    } else if (stringValue.matches("[a-zA-Zа-яА-Я]+%")) {
-                        String regex = "\\b" + stringValue.replaceAll("%", "");
-                        Pattern pattern = Pattern.compile(regex);
-
-                        deletedLines.addAll(table.stream()
-                                .filter(row -> {
-                                    String value = row.get(column).toString().toLowerCase();
-                                    Matcher matcher = pattern.matcher(value);
-                                    if (matcher.find()) {
-                                        return true;
-                                    } else return false;
-                                }).collect(Collectors.toList()));
-                        break;
-
-                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+%")) {
-                        String regex = "\\B" + stringValue.replaceAll("%", "") + "\\B";
-                        Pattern pattern = Pattern.compile(regex);
-
-                        deletedLines.addAll(table.stream()
-                                .filter(row -> {
-                                    String value = row.get(column).toString().toLowerCase();
-                                    Matcher matcher = pattern.matcher(value);
-                                    if (matcher.find()) {
-                                        return true;
-                                    } else return false;
-                                }).collect(Collectors.toList()));
-                        break;
-                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+")) {
-                        String regex = stringValue.replaceAll("%", "") + "\\b";
-                        Pattern pattern = Pattern.compile(regex);
-
-                        deletedLines.addAll(table.stream()
-                                .filter(row -> {
-                                    String value = row.get(column).toString().toLowerCase();
-                                    Matcher matcher = pattern.matcher(value);
-                                    if (matcher.find()) {
-                                        return true;
-                                    } else return false;
-                                }).collect(Collectors.toList()));
-                        break;
-
-                    } else {
-                        break;
-                    }
+                }
+                cumulativeSet.clear();
+            }
+            else if (parameters[i].toLowerCase().equals("or")){
+                if(i == parameters.length){
+                    throw new IllegalAccessException("Wrong format: " + parameters[i]);
+                }
+                Set<Map<String, Object>> complementarySet = getCumulativeList(parameters[++i]);
+                deleteSet.addAll(complementarySet);
+                deleteSet.addAll(cumulativeSet);
+                cumulativeSet.clear();
+            }
+            else {
+                cumulativeSet.addAll(getCumulativeList(parameters[i]));
             }
         }
-        for (Map row : deletedLines){
-            System.out.println(row);
-            table.remove(row);
+        deleteSet.addAll(cumulativeSet);
+        System.out.println("Данные на удаление: ");
+        for (Map m : deleteSet){
+            System.out.println(m);
+            table.remove(m);
         }
-        return deletedLines.stream().toList();
+        return deleteSet.stream().toList();
     }
 
     //  ***INSERT***       Метод вставки элемента в таблицу
@@ -380,23 +223,229 @@ public class JavaSchoolStarter {
     }
 
 
-    // Получение списка элементов
-    private List<Map<String, Object>> select(String[] requestArray) {
-        if (requestArray.length == 1 && requestArray[0].toLowerCase().equals("select")) {
-            return table;
-        }
+    //  ***SELECT***  Получение списка элементов из таблицы
+    private List<Map<String, Object>> select(String[] parameters) throws Exception {
+        Set<Map<String, Object>> selectSet = new HashSet<>();
+        Set<Map<String, Object>> cumulativeSet = new HashSet<>();
 
-        if (requestArray[0].toLowerCase().equals("select") && requestArray[1].toLowerCase().equals("where")) {
-
-            //TODO написать работу метода
-            for (int i = 2; i < requestArray.length; i++) {
+        for (int i = 0; i < parameters.length; i++) {
+            if(parameters[i].toLowerCase().equals("and")){
+                Set<Map<String, Object>> excludedSet = getCumulativeList(parameters[++i]);
+                for (Map m: cumulativeSet){
+                    if (excludedSet.contains(m)){
+                        selectSet.add(m);
+                    }
+                }
+                cumulativeSet.clear();
             }
-            return table;
+            else if (parameters[i].toLowerCase().equals("or")){
+                Set<Map<String, Object>> complementarySet = getCumulativeList(parameters[++i]);
+                selectSet.addAll(complementarySet);
+                selectSet.addAll(cumulativeSet);
+                cumulativeSet.clear();
+            }
+            else {
+                cumulativeSet.addAll(getCumulativeList(parameters[i]));
+            }
         }
-
-        return new ArrayList<Map<String, Object>>();
+        selectSet.addAll(cumulativeSet);
+        System.out.println("Данные по запросу: ");
+        for (Map m : selectSet){
+            System.out.println(m);
+        }
+        return selectSet.stream().toList();
     }
 
+    private Set<Map<String, Object>> getCumulativeList(String field) throws Exception {
+        Set<Map<String, Object>> cumulativeList = new HashSet<>();
+        String column, operator, stringValue;
+        String[] parametersArray = getParametersArray(field);
+        column = parametersArray[0];
+        operator = parametersArray[1];
+        stringValue = parametersArray[2];
+
+        switch (operator) {
+            case ("="):
+                if (column.equals("id") || column.equals("cost") || column.equals("age")) {
+                    System.out.println("Enter");
+                }
+
+                cumulativeList.addAll(table.stream().filter(row ->
+                        row.get(column).toString().equals(stringValue)).collect(Collectors.toList()));
+                break;
+            case ("<="):
+                if (column.equals("id") || column.equals("age")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (long) row.get(column) <= Long.parseLong(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (column.equals("cost")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (double) row.get(column) <= Double.parseDouble(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else {
+                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                }
+            case (">="):
+                if (column.equals("id") || column.equals("age")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (long) row.get(column) >= Long.parseLong(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (column.equals("cost")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (double) row.get(column) >= Double.parseDouble(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else {
+                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                }
+            case ("!="):
+                if (column.equals("id") || column.equals("age")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (long) row.get(column) != Long.parseLong(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (column.equals("cost")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (double) row.get(column) != Double.parseDouble(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else {
+                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                }
+            case ("<"):
+                if (column.equals("id") || column.equals("age")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (long) row.get(column) < Long.parseLong(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (column.equals("cost")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (double) row.get(column) <= Double.parseDouble(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else {
+                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                }
+            case (">"):
+                if (column.equals("id") || column.equals("age")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (long) row.get(column) > Long.parseLong(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (column.equals("cost")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    (double) row.get(column) > Double.parseDouble(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else {
+                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                }
+            case ("like"):
+                if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    row.get(column).toString().contains(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (stringValue.matches("[a-zA-Zа-яА-Я]+%")) {
+                    String regex = "\\b" + stringValue.replaceAll("%", "");
+                    Pattern pattern = Pattern.compile(regex);
+
+                    cumulativeList.addAll(table.stream()
+                            .filter(row -> {
+                                String value = row.get(column).toString();
+                                Matcher matcher = pattern.matcher(value);
+                                if (matcher.find()) {
+                                    return true;
+                                } else return false;
+                            }).collect(Collectors.toList()));
+                    break;
+
+                } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+%")) {
+                    String regex = "\\B" + stringValue.replaceAll("%", "") + "\\B";
+                    Pattern pattern = Pattern.compile(regex);
+
+                    cumulativeList.addAll(table.stream()
+                            .filter(row -> {
+                                String value = row.get(column).toString();
+                                Matcher matcher = pattern.matcher(value);
+                                if (matcher.find()) {
+                                    return true;
+                                } else return false;
+                            }).collect(Collectors.toList()));
+                    break;
+                } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+")) {
+                    String regex = stringValue.replaceAll("%", "") + "\\b";
+                    Pattern pattern = Pattern.compile(regex);
+
+                    cumulativeList.addAll(table.stream()
+                            .filter(row -> {
+                                String value = row.get(column).toString();
+                                Matcher matcher = pattern.matcher(value);
+                                if (matcher.find()) {
+                                    return true;
+                                } else return false;
+                            }).collect(Collectors.toList()));
+                    break;
+
+                } else {
+                    break;
+                }
+            case ("ilike"):
+                if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
+                    cumulativeList.addAll(table.stream().filter(row ->
+                                    row.get(column).toString().toLowerCase().contains(stringValue))
+                            .collect(Collectors.toList()));
+                    break;
+                } else if (stringValue.matches("[a-zA-Zа-яА-Я]+%")) {
+                    String regex = "\\b" + stringValue.replaceAll("%", "");
+                    Pattern pattern = Pattern.compile(regex);
+
+                    cumulativeList.addAll(table.stream()
+                            .filter(row -> {
+                                String value = row.get(column).toString().toLowerCase();
+                                Matcher matcher = pattern.matcher(value);
+                                if (matcher.find()) {
+                                    return true;
+                                } else return false;
+                            }).collect(Collectors.toList()));
+                    break;
+
+                } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+%")) {
+                    String regex = "\\B" + stringValue.replaceAll("%", "") + "\\B";
+                    Pattern pattern = Pattern.compile(regex);
+
+                    cumulativeList.addAll(table.stream()
+                            .filter(row -> {
+                                String value = row.get(column).toString().toLowerCase();
+                                Matcher matcher = pattern.matcher(value);
+                                if (matcher.find()) {
+                                    return true;
+                                } else return false;
+                            }).collect(Collectors.toList()));
+                    break;
+                } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+")) {
+                    String regex = stringValue.replaceAll("%", "") + "\\b";
+                    Pattern pattern = Pattern.compile(regex);
+
+                    cumulativeList.addAll(table.stream()
+                            .filter(row -> {
+                                String value = row.get(column).toString().toLowerCase();
+                                Matcher matcher = pattern.matcher(value);
+                                if (matcher.find()) {
+                                    return true;
+                                } else return false;
+                            }).collect(Collectors.toList()));
+                    break;
+
+                } else {
+                    break;
+                }
+        }
+        return cumulativeList;
+    }
 
     private Map<String, Object> initialMap() {
         Map<String, Object> map = new HashMap<String, Object>();
