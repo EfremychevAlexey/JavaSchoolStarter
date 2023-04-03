@@ -92,7 +92,7 @@ public class JavaSchoolStarter {
 
     //  ***DELETE***   Удаление элементов из таблицы
     private List<Map<String, Object>> delete(String[] parameters) throws Exception {
-        ArrayList<Map<String, Object>> deletedLines = new ArrayList<>();
+        Set<Map<String, Object>> deletedLines = new HashSet<>();
         for (String field : parameters) {
             String column, operator, stringValue;
             String[] parametersArray = getParametersArray(field);
@@ -100,146 +100,192 @@ public class JavaSchoolStarter {
             operator = parametersArray[1];
             stringValue = parametersArray[2];
 
-            switch (operator){
+            switch (operator) {
                 case ("="):
+                    if (column.equals("id") || column.equals("cost") || column.equals("age")) {
+                        System.out.println("Enter");
+                    }
+
                     deletedLines.addAll(table.stream().filter(row ->
                             row.get(column).toString().equals(stringValue)).collect(Collectors.toList()));
-                    for (Map row : deletedLines){
-                        System.out.println(row);
-                    }
                     break;
                 case ("<="):
-                    if(column.equals("id") || column.equals("age")){
+                    if (column.equals("id") || column.equals("age")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (long)row.get(column) <= Long.parseLong(stringValue))
+                                        (long) row.get(column) <= Long.parseLong(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
                     } else if (column.equals("cost")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (double)row.get(column) <= Double.parseDouble(stringValue))
+                                        (double) row.get(column) <= Double.parseDouble(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else {
+                    } else {
                         throw new Exception("The data cannot be compared" + column + operator + stringValue);
                     }
                 case (">="):
-                    if(column.equals("id") || column.equals("age")){
+                    if (column.equals("id") || column.equals("age")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (long)row.get(column) >= Long.parseLong(stringValue))
+                                        (long) row.get(column) >= Long.parseLong(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else if (column.equals("cost")) {
+                    } else if (column.equals("cost")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (double)row.get(column) >= Double.parseDouble(stringValue))
+                                        (double) row.get(column) >= Double.parseDouble(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else {
+                    } else {
                         throw new Exception("The data cannot be compared" + column + operator + stringValue);
                     }
                 case ("!="):
-                    if(column.equals("id") || column.equals("age")){
+                    if (column.equals("id") || column.equals("age")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (long)row.get(column) != Long.parseLong(stringValue))
+                                        (long) row.get(column) != Long.parseLong(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else if (column.equals("cost")) {
+                    } else if (column.equals("cost")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (double)row.get(column) != Double.parseDouble(stringValue))
+                                        (double) row.get(column) != Double.parseDouble(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else {
+                    } else {
                         throw new Exception("The data cannot be compared" + column + operator + stringValue);
                     }
                 case ("<"):
-                    if(column.equals("id") || column.equals("age")){
+                    if (column.equals("id") || column.equals("age")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (long)row.get(column) < Long.parseLong(stringValue))
+                                        (long) row.get(column) < Long.parseLong(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
                     } else if (column.equals("cost")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (double)row.get(column) <= Double.parseDouble(stringValue))
+                                        (double) row.get(column) <= Double.parseDouble(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else {
+                    } else {
                         throw new Exception("The data cannot be compared" + column + operator + stringValue);
                     }
                 case (">"):
-                    if(column.equals("id") || column.equals("age")){
+                    if (column.equals("id") || column.equals("age")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (long)row.get(column) <= Long.parseLong(stringValue))
+                                        (long) row.get(column) > Long.parseLong(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
                     } else if (column.equals("cost")) {
                         deletedLines.addAll(table.stream().filter(row ->
-                                        (double)row.get(column) > Double.parseDouble(stringValue))
+                                        (double) row.get(column) > Double.parseDouble(stringValue))
                                 .collect(Collectors.toList()));
-                        for (Map row : deletedLines){
-                            System.out.println(row);
-                        }
                         break;
-                    }
-                    else {
+                    } else {
                         throw new Exception("The data cannot be compared" + column + operator + stringValue);
                     }
                 case ("like"):
-//                    if (column.equals("lastName")){
-//                        if(stringValue.matches("\b[a-zA-Z[а-яА-Я]]+\b")){
-//                            deletedLines.addAll(table.stream().filter(row ->
-//                                            row.get("lastName").toString().contains(stringValue))
-//                                    .collect(Collectors.toList()));
-//                            for (Map row : deletedLines){
-//                                System.out.println(row);
-//                            }
-//                            break;
-//                        }
-//                        if (stringValue.matches("\b[a-zA-Z[а-яА-Я]]+")){
-//
-//                        }
-//                    }
-//                    else {
-//                        throw new Exception("The data cannot be compared" + column + operator + stringValue);
-//                    }
+                    if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
+                        deletedLines.addAll(table.stream().filter(row ->
+                                        row.get(column).toString().contains(stringValue))
+                                .collect(Collectors.toList()));
+                        break;
+                    } else if (stringValue.matches("[a-zA-Zа-яА-Я]+%")) {
+                        String regex = "\\b" + stringValue.replaceAll("%", "");
+                        Pattern pattern = Pattern.compile(regex);
 
+                        deletedLines.addAll(table.stream()
+                                .filter(row -> {
+                                    String value = row.get(column).toString();
+                                    Matcher matcher = pattern.matcher(value);
+                                    if (matcher.find()) {
+                                        return true;
+                                    } else return false;
+                                }).collect(Collectors.toList()));
+                        break;
+
+                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+%")) {
+                        String regex = "\\B" + stringValue.replaceAll("%", "") + "\\B";
+                        Pattern pattern = Pattern.compile(regex);
+
+                        deletedLines.addAll(table.stream()
+                                .filter(row -> {
+                                    String value = row.get(column).toString();
+                                    Matcher matcher = pattern.matcher(value);
+                                    if (matcher.find()) {
+                                        return true;
+                                    } else return false;
+                                }).collect(Collectors.toList()));
+                        break;
+                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+")) {
+                        String regex = stringValue.replaceAll("%", "") + "\\b";
+                        Pattern pattern = Pattern.compile(regex);
+
+                        deletedLines.addAll(table.stream()
+                                .filter(row -> {
+                                    String value = row.get(column).toString();
+                                    Matcher matcher = pattern.matcher(value);
+                                    if (matcher.find()) {
+                                        return true;
+                                    } else return false;
+                                }).collect(Collectors.toList()));
+                        break;
+
+                    } else {
+                        break;
+                    }
                 case ("ilike"):
+                    if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
+                        deletedLines.addAll(table.stream().filter(row ->
+                                        row.get(column).toString().toLowerCase().contains(stringValue))
+                                .collect(Collectors.toList()));
+                        break;
+                    } else if (stringValue.matches("[a-zA-Zа-яА-Я]+%")) {
+                        String regex = "\\b" + stringValue.replaceAll("%", "");
+                        Pattern pattern = Pattern.compile(regex);
 
+                        deletedLines.addAll(table.stream()
+                                .filter(row -> {
+                                    String value = row.get(column).toString().toLowerCase();
+                                    Matcher matcher = pattern.matcher(value);
+                                    if (matcher.find()) {
+                                        return true;
+                                    } else return false;
+                                }).collect(Collectors.toList()));
+                        break;
+
+                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+%")) {
+                        String regex = "\\B" + stringValue.replaceAll("%", "") + "\\B";
+                        Pattern pattern = Pattern.compile(regex);
+
+                        deletedLines.addAll(table.stream()
+                                .filter(row -> {
+                                    String value = row.get(column).toString().toLowerCase();
+                                    Matcher matcher = pattern.matcher(value);
+                                    if (matcher.find()) {
+                                        return true;
+                                    } else return false;
+                                }).collect(Collectors.toList()));
+                        break;
+                    } else if (stringValue.matches("%[a-zA-Zа-яА-Я]+")) {
+                        String regex = stringValue.replaceAll("%", "") + "\\b";
+                        Pattern pattern = Pattern.compile(regex);
+
+                        deletedLines.addAll(table.stream()
+                                .filter(row -> {
+                                    String value = row.get(column).toString().toLowerCase();
+                                    Matcher matcher = pattern.matcher(value);
+                                    if (matcher.find()) {
+                                        return true;
+                                    } else return false;
+                                }).collect(Collectors.toList()));
+                        break;
+
+                    } else {
+                        break;
+                    }
             }
         }
-
-        return new ArrayList<Map<String, Object>>();
+        for (Map row : deletedLines){
+            System.out.println(row);
+            table.remove(row);
+        }
+        return deletedLines.stream().toList();
     }
 
     //  ***INSERT***       Метод вставки элемента в таблицу
@@ -272,7 +318,7 @@ public class JavaSchoolStarter {
                         }
                         break;
                     case "lastName":
-                        if (stringValue.matches("[a-zA-Z[а-яА-я]]+")) {
+                        if (stringValue.matches("%?[a-zA-Z[а-яА-я]]+%?")) {
                             String value = stringValue.replaceAll("'", "");
                             map.put(column, value);
                             System.out.println("Добавлено поле lastName");
@@ -334,7 +380,6 @@ public class JavaSchoolStarter {
     }
 
 
-
     // Получение списка элементов
     private List<Map<String, Object>> select(String[] requestArray) {
         if (requestArray.length == 1 && requestArray[0].toLowerCase().equals("select")) {
@@ -378,7 +423,7 @@ public class JavaSchoolStarter {
         if (matcherOperator.find()) {
             operator = field.substring(matcherOperator.start() + 1, matcherOperator.end() - 1);
             stringValue = field.substring(matcherOperator.end(), field.length())
-                    .replaceAll("'","")
+                    .replaceAll("'", "")
                     .replaceAll(",", "");
         } else {
             throw new IllegalAccessException("Wrong format");
@@ -391,18 +436,18 @@ public class JavaSchoolStarter {
                 .replaceAll("\s?,\s?", ",\s")
                 .replaceAll("‘", "'")
                 .replaceAll("’", "'")
-                .replaceAll("\s?=\s?","=")
-                .replaceAll("\s?>\s?",">")
-                .replaceAll("\s?<\s?","<")
-                .replaceAll("\s?!\s?","!")
-                .replaceAll("'=","'#=#")
-                .replaceAll("[>=]{2}","#>=#")
-                .replaceAll("[<=]{2}","#<=#")
-                .replaceAll("[!=]{2}","#!=#")
-                .replaceAll("'>","'#>#")
-                .replaceAll("'<","'#<#")
-                .replaceAll("\slike\s","#like#")
-                .replaceAll("\silike\s","#ilike#")
+                .replaceAll("\s?=\s?", "=")
+                .replaceAll("\s?>\s?", ">")
+                .replaceAll("\s?<\s?", "<")
+                .replaceAll("\s?!\s?", "!")
+                .replaceAll("'=", "'#=#")
+                .replaceAll("[>=]{2}", "#>=#")
+                .replaceAll("[<=]{2}", "#<=#")
+                .replaceAll("[!=]{2}", "#!=#")
+                .replaceAll("'>", "'#>#")
+                .replaceAll("'<", "'#<#")
+                .replaceAll("\slike\s", "#like#")
+                .replaceAll("\silike\s", "#ilike#")
                 .trim();
 
         String[] requestArray = stringRequest.split("\s");

@@ -25,14 +25,15 @@ public class Main {
         requestList.add("INSERT VALUES ‘lastName’ = ‘Демидов’ , ‘id’ = 3, ‘age’=25,‘active’=true,‘cost’ = 3.5");
         requestList.add("INSERT VALUES ‘lastName’ = ‘Киселев’ , ‘id’ = 4, ‘age’=30,‘active’=true,‘cost’ = 4.5");
         requestList.add("INSERT VALUES ‘lastName’ = ‘Абрамов’ , ‘id’ = 5, ‘age’=35,‘active’=true,‘cost’ = 5.5");
-        requestList.add("DELETE WHERE ‘lastName’ like 'Киселев'");
+        requestList.add("DELETE WHERE 'id' <= 4, 'lastName' like 'Кис%'");
 
         for(String request : requestList){
             javaSchoolStarter.execute(request);
         }
-//        for (Map m: javaSchoolStarter.table){
-//            System.out.println(m);
-//        }
+        System.out.println();
+        for (Map m: javaSchoolStarter.table){
+            System.out.println(m);
+        }
 
     }
 }
