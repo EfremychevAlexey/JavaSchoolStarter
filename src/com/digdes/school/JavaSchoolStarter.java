@@ -13,37 +13,38 @@ public class JavaSchoolStarter {
     public JavaSchoolStarter() {
 
     }
-    // Пример добавления строки в коллекцию:
-    // INSERT VALUES ‘lastName’ = ‘Федоров’ , ‘id’=3, ‘age’=40, ‘active’=true
 
     public List<Map<String, Object>> execute(String initialRequest) throws Exception {
         List<Map<String, Object>> resultList = new ArrayList<>();
-        System.out.println("Не оптимизированный запрос:  " + initialRequest);
         String[] requestArray = stringOptimization(initialRequest);
-        System.out.println("Оптимизированный запрос:  ");
-        Arrays.stream(requestArray).forEach(System.out::println);
-        System.out.println();
 
         try {
             switch (requestArray[0].toLowerCase()) {
                 case "select":
                     if (requestArray.length == 1) {
-                        System.out.println("получен весь список");
                         return table;
                     } else if (requestArray[1].toLowerCase().equals("where") && requestArray.length > 2) {
                         String[] parameters = new String[requestArray.length - 2];
                         System.arraycopy(requestArray, 2, parameters, 0, parameters.length);
-                        return select(parameters);
+                        resultList = select(parameters);
+                        break;
                     }
                 case "delete":
                     if (requestArray.length == 1) {
+                        List<Map<String, Object>> finalResultList = resultList;
+                        table.stream().forEach(row -> {
+                            Map<String, Object> map = new HashMap<>();
+                            map.putAll(row);
+                            finalResultList.add(map);
+                        });
                         table.clear();
-                        System.out.println("таблица очищена");
-                        return table;
+                        return finalResultList;
+
                     } else if (requestArray[1].toLowerCase().equals("where") && requestArray.length > 2) {
                         String[] parameters = new String[requestArray.length - 2];
                         System.arraycopy(requestArray, 2, parameters, 0, parameters.length);
-                        return delete(parameters);
+                        resultList = delete(parameters);
+                        break;
                     } else {
                         throw new IllegalAccessException("Wrong format");
                     }
@@ -53,30 +54,22 @@ public class JavaSchoolStarter {
                     } else if (requestArray[1].toLowerCase().equals("values")) {
                         String[] parameters = new String[requestArray.length - 2];
                         System.arraycopy(requestArray, 2, parameters, 0, parameters.length);
-                        return insert(parameters);
+                        resultList = insert(parameters);
+                        break;
                     } else {
                         throw new IllegalAccessException("Wrong format");
                     }
                 case "update":
                     if (requestArray.length <= 2) {
-                        throw new IllegalAccessException("Wrong format");
-                    } else if (requestArray[0].toLowerCase().equals("update") && requestArray[1].toLowerCase().equals("values")) {
-                        for (int i = 2; i < requestArray.length; i++) {
-                            if (requestArray[i].toLowerCase().equals("where")) {
-                                String[] parameters = new String[i - 2];
-                                System.out.println("Размер массива с параметрами " + parameters.length);
-                                String[] selectionBy = new String[requestArray.length - i];
-                                System.out.println("Размер массива с параметрами отбора " + selectionBy.length);
-
-                                System.arraycopy(requestArray, 2, parameters, 0, parameters.length);
-                                System.arraycopy(requestArray, i + 1, selectionBy, 0, selectionBy.length);
-                                return update(parameters, selectionBy);
-                            } else {
-                                String[] parameters = new String[requestArray.length - 1];
-                                System.arraycopy(requestArray, 1, parameters, 0, parameters.length);
-                                return update(parameters, null);
-                            }
+                        throw new IllegalAccessException("Wrong format command");
+                    } else if (requestArray[1].toLowerCase().equals("values")) {
+                        String[] parameters = new String[requestArray.length - 2];
+                        System.arraycopy(requestArray, 2, parameters, 0, parameters.length);
+                        for (String s: parameters){
+                            System.out.println(s);
                         }
+                        resultList = update(parameters);
+                        break;
                     } else {
                         throw new IllegalAccessException("Wrong format");
                     }
@@ -86,106 +79,96 @@ public class JavaSchoolStarter {
         } catch (IllegalAccessException ex) {
             ex.printStackTrace();
         }
-        return null;
+        return resultList;
     }
-
 
     //  ***DELETE***   Удаление элементов из таблицы
     private List<Map<String, Object>> delete(String[] parameters) throws Exception {
-        Set<Map<String, Object>> deleteSet = new HashSet<>();
-        Set<Map<String, Object>> cumulativeSet = new HashSet<>();
+        List<Map<String, Object>> resultDeleteList = new ArrayList<>();
+        List<Map<String, Object>> deleteSet = new ArrayList<>();
+        List<Map<String, Object>> cumulativeSet = new ArrayList<>();
 
         for (int i = 0; i < parameters.length; i++) {
-            if(parameters[i].toLowerCase().equals("and")){
-                if(i == parameters.length){
+
+            if (parameters[i].toLowerCase().equals("and")) {
+                if (i >= parameters.length) {
                     throw new IllegalAccessException("Wrong format: " + parameters[i]);
                 }
-                Set<Map<String, Object>> excludedSet = getCumulativeList(parameters[++i]);
+                List<Map<String, Object>> excludedSet = getCumulativeList(parameters[++i]);
 
-                for (Map m: cumulativeSet){
-                    if (excludedSet.contains(m)){
+                if (cumulativeSet.size() == 0) {
+                    cumulativeSet.addAll(deleteSet);
+                    deleteSet.clear();
+                }
+                for (Map m : cumulativeSet) {
+                    if (excludedSet.contains(m)) {
                         deleteSet.add(m);
                     }
                 }
                 cumulativeSet.clear();
-            }
-            else if (parameters[i].toLowerCase().equals("or")){
-                if(i == parameters.length){
+            } else if (parameters[i].toLowerCase().equals("or")) {
+                if (i == parameters.length) {
                     throw new IllegalAccessException("Wrong format: " + parameters[i]);
                 }
-                Set<Map<String, Object>> complementarySet = getCumulativeList(parameters[++i]);
+                List<Map<String, Object>> complementarySet = getCumulativeList(parameters[++i]);
                 deleteSet.addAll(complementarySet);
                 deleteSet.addAll(cumulativeSet);
                 cumulativeSet.clear();
-            }
-            else {
+            } else {
                 cumulativeSet.addAll(getCumulativeList(parameters[i]));
             }
         }
         deleteSet.addAll(cumulativeSet);
-        System.out.println("Данные на удаление: ");
-        for (Map m : deleteSet){
-            System.out.println(m);
+
+        deleteSet.stream().forEach(m -> {
+            Map<String, Object> map = new HashMap<>();
+            map.putAll(m);
+            resultDeleteList.add(map);
             table.remove(m);
-        }
-        return deleteSet.stream().toList();
+        });
+        return resultDeleteList;
     }
 
     //  ***INSERT***       Метод вставки элемента в таблицу
     private List<Map<String, Object>> insert(String[] parameters) throws IllegalAccessException {
-        System.out.println("Выполнение insert");
-        boolean mapIsEmpty = true;
-        ArrayList<Map<String, Object>> listInsert = new ArrayList<>();
+
+        List<Map<String, Object>> listInsert = new ArrayList<>();
         Map<String, Object> map = initialMap();
 
         for (String field : parameters) {
             String column, operator, stringValue;
             String[] parametersArray = getParametersArray(field);
             column = parametersArray[0];
-            System.out.println("Колонка " + column);
             operator = parametersArray[1];
-            System.out.println("Оператор " + operator);
             stringValue = parametersArray[2];
-            System.out.println("Значение " + stringValue);
 
             if (!operator.equals("=")) {
                 throw new IllegalAccessException("Wrong format: " + column + operator + stringValue);
             } else {
                 switch (column) {
-                    case "id":
+                    case "id", "age":
                         try {
                             map.put(column, Long.valueOf(stringValue));
-                            System.out.println("Добавлено поле Id");
                         } catch (NumberFormatException ex) {
                             ex.printStackTrace();
                         }
                         break;
                     case "lastName":
-                        if (stringValue.matches("%?[a-zA-Z[а-яА-я]]+%?")) {
-                            String value = stringValue.replaceAll("'", "");
-                            map.put(column, value);
-                            System.out.println("Добавлено поле lastName");
+                        if (stringValue.matches("[a-zA-Z[а-яА-я]]+")) {
+                            map.put(column, stringValue);
                             break;
+                        } else {
+                            throw new IllegalAccessException("Wrong format: " + stringValue);
                         }
-                    case "age":
-                        try {
-                            map.put(column, Long.valueOf(stringValue));
-                            System.out.println("Добавлено поле age");
-                        } catch (NumberFormatException ex) {
-                            ex.printStackTrace();
-                        }
-                        break;
                     case "cost":
                         try {
                             map.put(column, Double.valueOf(stringValue));
-                            System.out.println("Добавлено поле cost");
                         } catch (NumberFormatException ex) {
                             ex.printStackTrace();
                         }
                         break;
                     case "active":
                         map.put(column, Boolean.valueOf(stringValue));
-                        System.out.println("Добавлено поле active");
                         break;
                     default:
                         throw new IllegalAccessException("Wrong the column name");
@@ -197,67 +180,106 @@ public class JavaSchoolStarter {
         return table;
     }
 
-
-    // Метод обновления элементов таблицы
-    private List<Map<String, Object>> update(String[] parameters, String[] selectedBy) {
-//        ArrayList<String[]> parametersList = new ArrayList<>();
-//        for (String field : parameters) {
-//            if(field.toLowerCase().equals("and") || field.toLowerCase().equals("or")){
-//                parametersList.add(new String[]{field.toLowerCase()});
-//                continue;
-//            }
-//            String column, operator, stringValue;
-//            String[] parametersArray = getParametersArray(field);
-//            column = parametersArray[0];
-//            operator = parametersArray[1];
-//            stringValue = parametersArray[2];
-//            parametersList.add(new String[]{column, operator, stringValue});
-//        }
-//        for (String[] parameter : parametersList){
-//            for(String str : parameter){
-//                System.out.print(str);
-//            }
-//            System.out.println();
-//        }
-        return new ArrayList<Map<String, Object>>();
-    }
-
-
     //  ***SELECT***  Получение списка элементов из таблицы
     private List<Map<String, Object>> select(String[] parameters) throws Exception {
-        Set<Map<String, Object>> selectSet = new HashSet<>();
-        Set<Map<String, Object>> cumulativeSet = new HashSet<>();
+        List<Map<String, Object>> selectSet = new ArrayList<>();
+        List<Map<String, Object>> cumulativeSet = new ArrayList<>();
 
         for (int i = 0; i < parameters.length; i++) {
-            if(parameters[i].toLowerCase().equals("and")){
-                Set<Map<String, Object>> excludedSet = getCumulativeList(parameters[++i]);
-                for (Map m: cumulativeSet){
-                    if (excludedSet.contains(m)){
+            if (parameters[i].toLowerCase().equals("and")) {
+                List<Map<String, Object>> excludedSet = getCumulativeList(parameters[++i]);
+                if (cumulativeSet.size() == 0) {
+                    cumulativeSet.addAll(selectSet);
+                    selectSet.clear();
+                }
+                for (Map m : cumulativeSet) {
+                    if (excludedSet.contains(m)) {
                         selectSet.add(m);
                     }
                 }
                 cumulativeSet.clear();
-            }
-            else if (parameters[i].toLowerCase().equals("or")){
-                Set<Map<String, Object>> complementarySet = getCumulativeList(parameters[++i]);
+            } else if (parameters[i].toLowerCase().equals("or")) {
+                List<Map<String, Object>> complementarySet = getCumulativeList(parameters[++i]);
                 selectSet.addAll(complementarySet);
                 selectSet.addAll(cumulativeSet);
                 cumulativeSet.clear();
-            }
-            else {
+            } else {
                 cumulativeSet.addAll(getCumulativeList(parameters[i]));
             }
         }
         selectSet.addAll(cumulativeSet);
-        System.out.println("Данные по запросу: ");
-        for (Map m : selectSet){
-            System.out.println(m);
-        }
         return selectSet.stream().toList();
     }
 
-    private Set<Map<String, Object>> getCumulativeList(String field) throws Exception {
-        Set<Map<String, Object>> cumulativeList = new HashSet<>();
+    // ***UPDATE***   Метод обновления элементов таблицы
+    private List<Map<String, Object>> update(String[] parameters) throws Exception {
+        List<Map<String, Object>> updateList = table;
+        String[] whereValues;
+        String[] newValues = parameters;
+
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i].toLowerCase().equals("where")) {
+                whereValues = new String[parameters.length - i - 1];
+                newValues = new String[parameters.length - (parameters.length - i)];
+                System.arraycopy(parameters, i + 1, whereValues, 0, whereValues.length);
+                updateList = select(whereValues);
+                System.arraycopy(parameters, 0, newValues, 0, newValues.length);
+
+            }
+        }
+        for (String field : newValues) {
+            String column, operator, stringValue;
+            String[] parametersArray = getParametersArray(field);
+            column = parametersArray[0];
+            operator = parametersArray[1];
+            stringValue = parametersArray[2];
+            if (!operator.equals("=")) {
+                throw new IllegalAccessException("Wrong format: " + column + operator + stringValue);
+            } else {
+                switch (column) {
+                    case "id", "age":
+                        try {
+                            updateList.stream().forEach(row -> {
+                                row.put(column, Long.valueOf(stringValue));
+                            });
+                        } catch (NumberFormatException ex) {
+                            ex.printStackTrace();
+                        }
+                        break;
+                    case "lastName":
+                        if (stringValue.matches("[a-zA-Z[а-яА-я]]+")) {
+                            updateList.stream().forEach(row -> {
+                                row.put(column, stringValue);
+                            });
+                            break;
+                        } else {
+                            throw new IllegalAccessException("Wrong format: " + stringValue);
+                        }
+                    case "cost":
+                        try {
+                            updateList.stream().forEach(row -> {
+                                row.put(column, Double.valueOf(stringValue));
+                            });
+                        } catch (NumberFormatException ex) {
+                            ex.printStackTrace();
+                        }
+                        break;
+                    case "active":
+                        updateList.stream().forEach(row -> {
+                            row.put(column, Boolean.valueOf(stringValue));
+                        });
+                        break;
+                    default:
+                        throw new IllegalAccessException("Wrong the column name");
+                }
+                return updateList;
+            }
+        }
+        return updateList;
+    }
+
+    public List<Map<String, Object>> getCumulativeList(String field) throws Exception {
+        List<Map<String, Object>> cumulativeList = new ArrayList<>();
         String column, operator, stringValue;
         String[] parametersArray = getParametersArray(field);
         column = parametersArray[0];
@@ -266,79 +288,137 @@ public class JavaSchoolStarter {
 
         switch (operator) {
             case ("="):
-                if (column.equals("id") || column.equals("cost") || column.equals("age")) {
-                    System.out.println("Enter");
-                }
-
-                cumulativeList.addAll(table.stream().filter(row ->
-                        row.get(column).toString().equals(stringValue)).collect(Collectors.toList()));
+                cumulativeList.addAll(table.stream().filter(row -> {
+                    if (row.get(column) == null) {
+                        return false;
+                    }
+                    if (row.get(column).toString().equals(stringValue)) {
+                        return true;
+                    }
+                    return false;
+                }).collect(Collectors.toList()));
                 break;
             case ("<="):
                 if (column.equals("id") || column.equals("age")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (long) row.get(column) <= Long.parseLong(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        } else if ((long) row.get(column) <= Long.parseLong(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else if (column.equals("cost")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (double) row.get(column) <= Double.parseDouble(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        }
+                        if ((double) row.get(column) <= Double.parseDouble(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else {
                     throw new Exception("The data cannot be compared" + column + operator + stringValue);
                 }
             case (">="):
                 if (column.equals("id") || column.equals("age")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (long) row.get(column) >= Long.parseLong(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        } else if ((long) row.get(column) >= Long.parseLong(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else if (column.equals("cost")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (double) row.get(column) >= Double.parseDouble(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        }
+                        if ((double) row.get(column) >= Double.parseDouble(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else {
                     throw new Exception("The data cannot be compared" + column + operator + stringValue);
                 }
             case ("!="):
                 if (column.equals("id") || column.equals("age")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (long) row.get(column) != Long.parseLong(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        } else if ((long) row.get(column) != Long.parseLong(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else if (column.equals("cost")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (double) row.get(column) != Double.parseDouble(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        }
+                        if ((double) row.get(column) != Double.parseDouble(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else {
                     throw new Exception("The data cannot be compared" + column + operator + stringValue);
                 }
             case ("<"):
                 if (column.equals("id") || column.equals("age")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (long) row.get(column) < Long.parseLong(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        } else if ((long) row.get(column) < Long.parseLong(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else if (column.equals("cost")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (double) row.get(column) <= Double.parseDouble(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        }
+                        if ((double) row.get(column) < Double.parseDouble(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else {
                     throw new Exception("The data cannot be compared" + column + operator + stringValue);
                 }
             case (">"):
                 if (column.equals("id") || column.equals("age")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (long) row.get(column) > Long.parseLong(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        } else if ((long) row.get(column) > Long.parseLong(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else if (column.equals("cost")) {
-                    cumulativeList.addAll(table.stream().filter(row ->
-                                    (double) row.get(column) > Double.parseDouble(stringValue))
-                            .collect(Collectors.toList()));
+                    cumulativeList.addAll(table.stream().filter(row -> {
+                        if (row.get(column) == null) {
+                            return false;
+                        }
+                        if ((double) row.get(column) > Double.parseDouble(stringValue)) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList()));
                     break;
                 } else {
                     throw new Exception("The data cannot be compared" + column + operator + stringValue);
