@@ -65,9 +65,6 @@ public class JavaSchoolStarter {
                     } else if (requestArray[1].toLowerCase().equals("values")) {
                         String[] parameters = new String[requestArray.length - 2];
                         System.arraycopy(requestArray, 2, parameters, 0, parameters.length);
-                        for (String s: parameters){
-                            System.out.println(s);
-                        }
                         resultList = update(parameters);
                         break;
                     } else {
@@ -77,6 +74,8 @@ public class JavaSchoolStarter {
                     throw new IllegalAccessException("Wrong format");
             }
         } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        } catch (Exception ex){
             ex.printStackTrace();
         }
         return resultList;
@@ -228,6 +227,9 @@ public class JavaSchoolStarter {
             }
         }
         for (String field : newValues) {
+            for (String s : newValues){
+                System.out.println(s);
+            }
             String column, operator, stringValue;
             String[] parametersArray = getParametersArray(field);
             column = parametersArray[0];
@@ -321,7 +323,7 @@ public class JavaSchoolStarter {
                     }).collect(Collectors.toList()));
                     break;
                 } else {
-                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                    throw new Exception("The data cannot be compared: " + column + operator + stringValue);
                 }
             case (">="):
                 if (column.equals("id") || column.equals("age")) {
@@ -346,7 +348,7 @@ public class JavaSchoolStarter {
                     }).collect(Collectors.toList()));
                     break;
                 } else {
-                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                    throw new Exception("The data cannot be compared: " + column + operator + stringValue);
                 }
             case ("!="):
                 if (column.equals("id") || column.equals("age")) {
@@ -371,7 +373,7 @@ public class JavaSchoolStarter {
                     }).collect(Collectors.toList()));
                     break;
                 } else {
-                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                    throw new Exception("The data cannot be compared: " + column + operator + stringValue);
                 }
             case ("<"):
                 if (column.equals("id") || column.equals("age")) {
@@ -396,7 +398,7 @@ public class JavaSchoolStarter {
                     }).collect(Collectors.toList()));
                     break;
                 } else {
-                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                    throw new Exception("The data cannot be compared: " + column + operator + stringValue);
                 }
             case (">"):
                 if (column.equals("id") || column.equals("age")) {
@@ -421,7 +423,7 @@ public class JavaSchoolStarter {
                     }).collect(Collectors.toList()));
                     break;
                 } else {
-                    throw new Exception("The data cannot be compared" + column + operator + stringValue);
+                    throw new Exception("The data cannot be compared: " + column + operator + stringValue);
                 }
             case ("like"):
                 if (stringValue.matches("[a-zA-Zа-яА-Я]+")) {
@@ -555,7 +557,11 @@ public class JavaSchoolStarter {
                     .replaceAll("'", "")
                     .replaceAll(",", "");
         } else {
-            throw new IllegalAccessException("Wrong format");
+            throw new IllegalAccessException("Wrong format: " + field);
+        }
+        if(column.toLowerCase().equals("active") && !stringValue.toLowerCase().equals("true")
+                && !stringValue.toLowerCase().equals("false")){
+            throw new IllegalAccessException("Wrong format: " + field);
         }
         return new String[]{column, operator, stringValue};
     }
