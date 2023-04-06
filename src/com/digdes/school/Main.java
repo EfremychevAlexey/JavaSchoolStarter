@@ -33,7 +33,8 @@ public class Main {
          delete where ‘cost’ <= 4 or 'age' = 15
          update values 'age' = 35
          select where 'active' > true
-         select where 'active' = false
+         select where 'active' = true
+         select where 'active' != false
          */
 
     }

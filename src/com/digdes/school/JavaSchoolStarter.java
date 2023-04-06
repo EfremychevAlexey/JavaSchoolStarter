@@ -75,7 +75,7 @@ public class JavaSchoolStarter {
             }
         } catch (IllegalAccessException ex) {
             ex.printStackTrace();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return resultList;
@@ -227,7 +227,7 @@ public class JavaSchoolStarter {
             }
         }
         for (String field : newValues) {
-            for (String s : newValues){
+            for (String s : newValues) {
                 System.out.println(s);
             }
             String column, operator, stringValue;
@@ -372,7 +372,24 @@ public class JavaSchoolStarter {
                         return false;
                     }).collect(Collectors.toList()));
                     break;
-                } else {
+                }
+                else if (column.equals("active")) {
+                    if (stringValue.toLowerCase().equals("true")
+                            || stringValue.toLowerCase().equals("false")) {
+                        cumulativeList.addAll(table.stream().filter(row -> {
+                            if (row.get(column) == null) {
+                                return false;
+                            }
+                            String value = row.get(column).toString().toLowerCase();
+                            if(!stringValue.equals(value)){
+                                return true;
+                            }
+                            return false;
+                        }).collect(Collectors.toList()));
+                        break;
+                    }
+                }
+                else{
                     throw new Exception("The data cannot be compared: " + column + operator + stringValue);
                 }
             case ("<"):
@@ -559,8 +576,8 @@ public class JavaSchoolStarter {
         } else {
             throw new IllegalAccessException("Wrong format: " + field);
         }
-        if(column.toLowerCase().equals("active") && !stringValue.toLowerCase().equals("true")
-                && !stringValue.toLowerCase().equals("false")){
+        if (column.toLowerCase().equals("active") && !stringValue.toLowerCase().equals("true")
+                && !stringValue.toLowerCase().equals("false")) {
             throw new IllegalAccessException("Wrong format: " + field);
         }
         return new String[]{column, operator, stringValue};
