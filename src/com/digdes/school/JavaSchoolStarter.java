@@ -219,22 +219,19 @@ public class JavaSchoolStarter {
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].toLowerCase().equals("where")) {
                 whereValues = new String[parameters.length - i - 1];
-                newValues = new String[parameters.length - (parameters.length - i)];
+                newValues = new String[i];
                 System.arraycopy(parameters, i + 1, whereValues, 0, whereValues.length);
                 updateList = select(whereValues);
                 System.arraycopy(parameters, 0, newValues, 0, newValues.length);
-
             }
         }
         for (String field : newValues) {
-            for (String s : newValues) {
-                System.out.println(s);
-            }
             String column, operator, stringValue;
             String[] parametersArray = getParametersArray(field);
             column = parametersArray[0];
             operator = parametersArray[1];
             stringValue = parametersArray[2];
+
             if (!operator.equals("=")) {
                 throw new IllegalAccessException("Wrong format: " + column + operator + stringValue);
             } else {
@@ -274,7 +271,6 @@ public class JavaSchoolStarter {
                     default:
                         throw new IllegalAccessException("Wrong the column name");
                 }
-                return updateList;
             }
         }
         return updateList;
@@ -566,7 +562,7 @@ public class JavaSchoolStarter {
         if (matcherColumn.find()) {
             column = field.substring(matcherColumn.start() + 1, matcherColumn.end() - 1);
         } else {
-            throw new IllegalAccessException("Wrong format");
+            throw new IllegalAccessException("Wrong format: " + field);
         }
         if (matcherOperator.find()) {
             operator = field.substring(matcherOperator.start() + 1, matcherOperator.end() - 1);
